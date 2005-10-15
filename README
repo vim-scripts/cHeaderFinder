@@ -1,0 +1,9 @@
+This is a mirror of http://www.vim.org/scripts/script.php?script_id=1380
+
+This script can find the header or list of headers requires by a particular C function. It uses man pages, chapters 2 and 3. If not found there, it uses the tags file in combination with the a.vim plugin.
+All that without spoiling the jumplist!!!
+
+Under suggested settings:
+\f: gets all the headers required by the function under the cursor and puts them in the default register, so you can go to the top of the C source and 'p' them.
+\a: goes to the header of the function under the cursor. It's usually where it *should* be documented.
+
