@@ -1,6 +1,6 @@
-"$Id: cHeaderFinder.vim,v 1.2 2005/10/15 15:30:30 lpenz Exp $
+"$Id: cHeaderUtils.vim,v 1.1 2005/10/31 15:57:51 penz Exp $
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Name:         cHeaderFinder
+" Name:         cHeaderUtils
 " Description:  Usefull functions for C headers.
 " Author:       Leandro Penz <lpenz AT terra DOT com DOT br>
 " Maintainer:   Leandro Penz <lpenz AT terra DOT com DOT br>
@@ -11,15 +11,14 @@
 " Credits:      Mathieu Clabaut <mathieu.clabaut@free.fr>, the author of
 "                    vimspell, from where I got how to autogenerate the 
 "                    help from within the script.
-"               Mike Sharpe, for a.vim, required by this plugin.
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Section: Documentation 
 "
-" Documentation should be available by ":help cHeaderFinder" command, once the
+" Documentation should be available by ":help cHeaderUtils" command, once the
 " script has been copied in you .vim/plugin directory.
 "
 " If you do not want the documentation to be installed, just put
-" let b:cHeaderFinder_install_doc=0
+" let b:cHeaderUtils_install_doc=0
 " in your .vimrc, or uncomment the line above.
 "
 " The documentation is still available at the end of the script.
@@ -68,6 +67,11 @@ fu! <SID>HeaderFromTag(word)
 	return filename
 endf
 
+fu! <SID>Prototype(word)
+	exe 'keepjumps tag '.a:word." | let l=getline(line('.')) | keepjumps pop"
+	return l
+endf
+
 fu! <SID>IncludeLines(word)
 	let manline = system("man -P cat 3 ".a:word." 2>/dev/null | grep '#include'")
 	if v:shell_error != 0
@@ -83,10 +87,10 @@ endf
 
 fu! <SID>GotoHeaderFromTag(word)
 	let header = <SID>HeaderFromTag(a:word)
-	exe 'edit '.header.' | call search("'.a:word.'")'
+	exe 'edit '.header.' | call search("\\<'.a:word.'\\>", "w")'
 endf
 
-fu! <SID>SpellInstallDocumentation(full_name, revision)
+fu! <SID>InstallDocumentation(full_name, revision)
 	" Name of the document path based on the system we use:
 	if (has("unix"))
 		" On UNIX like system, using forward slash:
@@ -194,27 +198,28 @@ endf
 
 " Autodoc install:
 
-if exists("b:cHeaderFinder_install_doc") && b:cHeaderFinder_install_doc==0
+if exists("b:cHeaderUtils_install_doc") && b:cHeaderUtils_install_doc==0
 	finish
 end
 
-let s:revision=
-			\ substitute("$Revision: 1.2 $",'\$\S*: \([.0-9]\+\) \$','\1','')
-silent! let s:install_status =
-			\ <SID>SpellInstallDocumentation(expand('<sfile>:p'), s:revision)
+let s:revision= substitute("$Revision: 1.1 $",'\$\S*: \([.0-9]\+\) \$','\1','')
+silent! let s:install_status = <SID>InstallDocumentation(expand('<sfile>:p'), s:revision)
 if (s:install_status == 1)
-	echom expand("<sfile>:t:r") . ' v' . s:revision .
-				\ ': Help-documentation installed.'
+	echom expand("<sfile>:t:r") . ' v' . s:revision . ': Help-documentation installed.'
 endif
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Section: Interface
 
-fu! CHeaderFinder_HeadersFromFuncUnderCursor()
+fu! CHeaderUtils_PrototypeFromFuncUnderCursor()
+	redraw | echon <SID>Prototype(<SID>WordUnderCursor())
+endf
+
+fu! CHeaderUtils_HeadersFromFuncUnderCursor()
 	let @"=<SID>IncludeLines(<SID>WordUnderCursor())
 endf
 
-fu! CHeaderFinder_GotoHeaderFromFuncUnderCursor()
+fu! CHeaderUtils_GotoHeaderFromFuncUnderCursor()
 	call <SID>GotoHeaderFromTag(<SID>WordUnderCursor())
 endf
 
@@ -225,10 +230,10 @@ finish
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 === START_DOC
-*cHeaderFinder.txt*   utilities for C headers.                       #version#
+*cHeaderUtils.txt*   utilities for C headers.                       #version#
 
 
-                        CHEADERFINDER REFERENCE MANUAL~
+                        CHEADERUTILS REFERENCE MANUAL~
 
 
 Utilities for C headers.
@@ -238,56 +243,55 @@ the terms of the GNU General Public License.  See
     http://www.gnu.org/copyleft/gpl.txt
 
 ==============================================================================
-CONTENT                                                *cHeaderFinder-contents* 
+CONTENT                                                *cHeaderUtils-contents* 
 
-    Installation                       : |cHeaderFinder-install|
-    Intro                              : |cHeaderFinder|
-    Keys                               : |cHeaderFinder-keys|
-    Todo list                          : |cHeaderFinder-todo|
-    Links                              : |cHeaderFinder-links|
+    Installation                       : |cHeaderUtils-install|
+    Intro                              : |cHeaderUtils|
+    Keys                               : |cHeaderUtils-keys|
+    Todo list                          : |cHeaderUtils-todo|
+    Links                              : |cHeaderUtils-links|
 
 ==============================================================================
-1. cHeaderFinder Installation                            *cHeaderFinder-install*
+1. cHeaderUtils Installation                            *cHeaderUtils-install*
 
-    In order to install the plugin, place the cHeaderFinder.vim file into a plugin
+    In order to install the plugin, place the cHeaderUtils.vim file into a plugin
     directory in your runtime path (please see |add-global-plugin| and
     |'runtimepath'|).
 
     A key-map should also be made. Put in your |.vimrc| something like: >
-        nnoremap <leader>fh :call CHeaderFinder_HeadersFromFuncUnderCursor()<CR>
-        nnoremap <leader>a :call CHeaderFinder_GotoHeaderFromFuncUnderCursor()<CR>
+        nnoremap <leader>fh :call CHeaderUtils_HeadersFromFuncUnderCursor()<CR>
+        nnoremap <leader>a :call CHeaderUtils_GotoHeaderFromFuncUnderCursor()<CR>
 <
-    This script requires a.vim (http://www.vim.org/scripts/script.php?script_id=31).
 
 ==============================================================================
-2. cHeaderFinder Intro                                           *cHeaderFinder*
+2. cHeaderUtils Intro                                           *cHeaderUtils*
 
-    This is cHeaderFinder, a collection of utilities to ease the maintenance of
+    This is cHeaderUtils, a collection of utilities to ease the maintenance of
     C code.
 
 
-2.1 List of Features:                                  *cHeaderFinder-features*
+2.1 List of Features:                                  *cHeaderUtils-features*
 ---------------------
     
     - Go to any header file corresponding to any function.
     - Fetch the list of header files required for a function.
 
 ==============================================================================
-3. cHeaderFinder Options                                    *cHeaderFinder-opts*
+3. cHeaderUtils Options                                    *cHeaderUtils-opts*
 
-    There are no options for cHeaderFinder.
+    There are no options for cHeaderUtils.
 
 ==============================================================================
-4. cHeaderFinder Todo                                       *cHeaderFinder-todo*
+4. cHeaderUtils Todo                                       *cHeaderUtils-todo*
 
     - Improve documentation.
     - More features!
 
 ==============================================================================
-5. cHeaderFinder Links                                     *cHeaderFinder-links*
+5. cHeaderUtils Links                                     *cHeaderUtils-links*
 
     http://www.vim.org/scripts/script.php?script_id=?
-        Home page of cHeaderFinder.
+        Home page of cHeaderUtils.
 
 === END_DOC
 
